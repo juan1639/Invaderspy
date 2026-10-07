@@ -1,0 +1,30 @@
+# Archivos compilados de Python
+__pycache__/
+*.pyc
+*.pyo
+
+build/
+dist/
+
+# Entornos virtuales
+venv/
+env/
+
+# Archivos de configuración del IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Archivos de logs y temporales
+*.log
+*.tmp
+
+# Archivos específicos de sistema
+.DS_Store
+Thumbs.db
+
+# Especificos
+novale.*
+
+
