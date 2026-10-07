@@ -1,0 +1,76 @@
+import os
+
+WIDTH = 1000
+HEIGHT = 700
+FPS = 60
+
+ASSETS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
+
+PLAYER_W = 50
+PLAYER_H = 20
+PLAYER_Y = HEIGHT - 50
+PLAYER_SPEED = 350
+PLAYER_BULLET_SPEED = 520
+MAX_PLAYER_BULLETS = 3
+BULLET_W = 4
+BULLET_H = 14
+RESPAWN_PLAYER_DURATION = 1.1
+
+ENEMY_W = 40
+ENEMY_H = 28
+ENEMY_COLS = 11
+ENEMY_ROWS = 5
+ENEMY_GAP_X = 16
+ENEMY_GAP_Y = 14
+FORMATION_START_X = 60
+FORMATION_START_Y = 80
+FORMATION_MARGIN = 20
+ENEMY_BASE_SPEED = 80
+ENEMY_SPEED_BONUS = 180
+ENEMY_DROP = 24
+ENEMY_BULLET_SPEED = 450
+ENEMY_SHOT_MIN = [0.6, 0.5, 0.4, 0.3, 0.2, 0.1] #0.6
+ENEMY_SHOT_MAX = [0.9, 0.7, 0.5, 0.4, 0.4, 0.2] #1.6
+ENEMY_SAFE_GAP = 40
+ENEMY_ANIM_DURATION = 0.7
+
+SHIELD_COUNT = 4
+SHIELD_BLOCK = 8
+SHIELD_Y = PLAYER_Y - 100
+SHIELD_HIT_RADIUS = 10
+SHIELD_PATTERN = [
+    "..#######..",
+    ".#########.",
+    "###########",
+    "###########",
+    "###########",
+    "###########",
+    "####...####",
+    "###.....###",
+]
+
+START_LIVES = 3
+ROW_POINTS = [30, 20, 20, 10, 10]
+ROW_SPRITES = ["enemy_0", "enemy_1", "enemy_1", "enemy_2", "enemy_2"]
+ROW_SPRITES_2 = ["enemy_00", "enemy_11", "enemy_11", "enemy_22", "enemy_22"]
+LEVEL_CLEAR_TIME = 4.8
+INVULNERABLE_TIME = 2.8
+
+EXPLOSION_PARTICLES = (18, 28)
+PARTICLE_SPEED = (60, 260)
+PARTICLE_SIZE = (2, 5)
+PARTICLE_LIFE = (0.35, 0.8)
+PARTICLE_DRAG = 2.5
+EXPLOSION_COLORS = [(255, 255, 255), (255, 225, 90), (255, 150, 40), (255, 80, 60)]
+
+BG_COLOR = (8, 8, 20)
+PLAYER_COLOR = (80, 255, 120)
+PLAYER_BULLET_COLOR = (254, 254, 254)
+ENEMY_BULLET_COLOR = (255, 90, 90)
+SHIELD_COLOR = (95, 80, 60)
+TEXT_COLOR = (240, 240, 240)
+GAMEOVER_COLOR = (242, 27, 27)
+NIVELSUPERADO_COLOR = (21, 216, 242)
+
+
+
