@@ -25,6 +25,6 @@ env/
 Thumbs.db
 
 # Especificos
-novale.*
+novale.py
 
 
