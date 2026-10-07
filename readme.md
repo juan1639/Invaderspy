@@ -8,7 +8,7 @@
 
 ---
 
-<img src="img/invaders_1.png" alt="game img"/>
+<img src="assets/invaders_1.png" alt="game img"/>
 
 ---
 
