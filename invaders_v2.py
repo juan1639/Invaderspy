@@ -18,6 +18,7 @@ PLAYER_BULLET_SPEED = 520
 MAX_PLAYER_BULLETS = 3
 BULLET_W = 4
 BULLET_H = 14
+RESPAWN_PLAYER_DURATION = 1.1
 
 ENEMY_W = 40
 ENEMY_H = 28
@@ -191,6 +192,7 @@ def draw_centered(surface, font, text, y):
 
 class Game:
     def __init__(self):
+        self.sonidos = Sonidos()
         self.score = 0
         self.level = 1
         self.lives = START_LIVES
@@ -202,12 +204,14 @@ class Game:
         self.build_level()
 
     def build_level(self):
+        self.sonidos.reproducir("inicio-nivel")
         self.enemies = {(c, r) for r in range(ENEMY_ROWS) for c in range(ENEMY_COLS)}
         self.total_enemies = len(self.enemies)
         self.form_x = float(FORMATION_START_X)
         self.form_y = float(FORMATION_START_Y)
         self.form_dir = 1
         self.anim_enemies_timer = 0.0
+        self.respawn_player_timer = 0.0
         self.shields = build_shields()
         self.player_bullets = []
         self.enemy_bullets = []
@@ -229,7 +233,8 @@ class Game:
         return self.form_y + last_row * (ENEMY_H + ENEMY_GAP_Y) + ENEMY_H
 
     def fire(self):
-        if self.state == "playing" and len(self.player_bullets) < MAX_PLAYER_BULLETS:
+        if self.state == "playing" and len(self.player_bullets) < MAX_PLAYER_BULLETS and self.respawn_player_timer == 0.0:
+            self.sonidos.reproducir("fire")
             self.player_bullets.append([self.player_x - BULLET_W / 2, float(PLAYER_Y - 10)])
 
     def damage_shields(self, center):
@@ -240,10 +245,14 @@ class Game:
         ]
 
     def lose_life(self):
+        spawn_explosion(self.particles, (self.player_x, PLAYER_Y))
+        self.sonidos.reproducir("jugador-explota")
+        self.respawn_player_timer = RESPAWN_PLAYER_DURATION
         self.lives -= 1
         self.enemy_bullets = []
         self.player_bullets = []
         if self.lives <= 0:
+            self.sonidos.reproducir("gameover")
             self.state = "game_over"
             return
         limit = PLAYER_Y - ENEMY_SAFE_GAP
@@ -300,6 +309,7 @@ class Game:
             hit = None
             for c, r in self.enemies:
                 if rect.colliderect(self.enemy_rect(c, r)):
+                    self.sonidos.reproducir("explo-enemy")
                     hit = (c, r)
                     break
             if hit is not None:
@@ -330,6 +340,7 @@ class Game:
 
     def update(self, dt, move):
         update_particles(self.particles, dt)
+
         if self.state == "level_clear":
             self.level_timer -= dt
             if self.level_timer <= 0:
@@ -343,6 +354,11 @@ class Game:
         self.anim_enemies_timer += dt
         if self.anim_enemies_timer >= ENEMY_ANIM_DURATION:
             self.anim_enemies_timer = 0.0
+
+        if self.respawn_player_timer > 0.0:
+            self.respawn_player_timer -= dt
+            if self.respawn_player_timer < 0.0:
+                self.respawn_player_timer = 0.0
 
         self.player_x += move * PLAYER_SPEED * dt
         self.player_x = max(PLAYER_W / 2, min(WIDTH - PLAYER_W / 2, self.player_x))
@@ -371,6 +387,7 @@ class Game:
             self.level_timer = LEVEL_CLEAR_TIME
             self.enemy_bullets = []
             self.player_bullets = []
+            self.sonidos.reproducir("level-up")
             return
 
         if self.invulnerable <= 0:
@@ -393,10 +410,15 @@ class Game:
         
         for block in self.shields:
             surface.blit(sprites["shield_block"], block.topleft)
+        
         if self.state != "game_over":
-            blink_off = self.invulnerable > 0 and int(self.invulnerable * 10) % 2 == 0
-            if not blink_off:
-                surface.blit(sprites["player"], self.player_rect().topleft)
+            if self.respawn_player_timer > 0.0:
+                pass
+            else:
+                blink_off = self.invulnerable > 0 and int(self.invulnerable * 10) % 2 == 0
+                if not blink_off:
+                    surface.blit(sprites["player"], self.player_rect().topleft)
+        
         for x, y in self.player_bullets:
             surface.blit(sprites["player_bullet"], (round(x), round(y)))
         for x, y in self.enemy_bullets:
@@ -416,6 +438,50 @@ class Game:
             draw_centered(surface, font, f"Puntuación final: {self.score}", HEIGHT // 2 + 30)
             draw_centered(surface, font, "Espacio para reiniciar", HEIGHT // 2 + 65)
 
+# ====================================================================================
+class Sonidos:
+    """Funcion constructora"""
+    def __init__(self):
+        pygame.mixer.init()
+        self.sonidos = self.cargar_sonidos()
+    
+    # -------------------------------------------------------------------------
+    def cargar_sonidos(self):
+        """Cargar todos los sonidos en un diccionario."""
+        return {
+            "level-up": self.cargar_sonido("alien-atmos-dark.mp3", 0.7),
+            "fire": self.cargar_sonido("disparo-corto.mp3", 0.5),
+            "explo-enemy": self.cargar_sonido("explosion.wav", 0.6),
+            "gameover": self.cargar_sonido("game-over-arcade-retro.mp3"),
+            "inicio-nivel": self.cargar_sonido("invaders-are-here.mp3", 0.8),
+            "jugador-explota": self.cargar_sonido("navexplota.mp3", 0.7),
+            "level-passed": self.cargar_sonido("level-passed.mp3", 0.6)
+        }
+    
+    # -------------------------------------------------------------------------
+    def cargar_sonido(self, filename, volumen=1.0):
+        """Carga un sonido específico con el volumen indicado."""
+        path = os.path.join(ASSETS_DIR, filename)
+
+        if os.path.isfile(path):
+            try:
+                sonido = pygame.mixer.Sound(path)
+                sonido.set_volume(volumen)
+                return sonido
+            except pygame.error:
+                return None
+        
+        return None
+    
+    # -------------------------------------------------------------------------
+    def reproducir(self, nombre, duracion=None):
+        """Reproduce un sonido si está en el diccionario."""
+        if nombre in self.sonidos:
+            if duracion == None:
+                self.sonidos[nombre].play()
+            else:
+                self.sonidos[nombre].play(maxtime=duracion)
+
 
 def main():
     pygame.init()
@@ -424,6 +490,7 @@ def main():
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, 32)
     big_font = pygame.font.Font(None, 72)
+    big_font.set_bold(True)
     sprites = load_sprites()
 
     game = Game()
